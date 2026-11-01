@@ -1,0 +1,27 @@
+name: Daily System Heartbeat
+
+on:
+  schedule:
+    # 每天 UTC 04:00 (对应太平洋时间晚上 8 点/9 点，确保每天稳亮)
+    - cron: '0 4 * * *'
+  workflow_dispatch: # 允许你手动点按钮触发测试
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update Heartbeat Log
+        run: |
+          mkdir -p logs
+          echo "System heartbeat active at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> logs/heartbeat.log
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add logs/heartbeat.log
+          git commit -m "chore(telemetry): record system heartbeat [skip ci]" || exit 0
+          git push
